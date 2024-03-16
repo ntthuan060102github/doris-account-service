@@ -7,5 +7,5 @@ import doris.dorisaccountservice.model.User;
 
 @Repository
 public interface UserRepository extends JpaRepository<User, Integer> {
-    
+    public Boolean existsByEmail(String email);
 }
