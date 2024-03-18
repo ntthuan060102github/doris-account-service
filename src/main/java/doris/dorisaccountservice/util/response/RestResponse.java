@@ -79,4 +79,11 @@ public class RestResponse implements UtilRestResponse {
         this.message = message;
         return this;
     }
+
+    @Override
+    public RestResponse definedError() {
+        this.status = RestStatusEnum.DEFINED_ERROR.getStatus();
+        this.message = RestStatusEnum.DEFINED_ERROR.getMessage();
+        return this;
+    }
 }
