@@ -2,6 +2,8 @@ package doris.dorisaccountservice.dto.request;
 
 import java.sql.Date;
 
+import doris.dorisaccountservice.enums.AccountStatus;
+import doris.dorisaccountservice.model.User;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
@@ -31,7 +33,8 @@ public class RegisterRequest {
 
     @Pattern(
         regexp = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)[a-zA-Z\\d]{8,}$", 
-        message = "Password must be at least 8 characters long and include at least one lowercase letter, one uppercase letter, and one number.")
+        message = "Password must be at least 8 characters long and include at least one lowercase letter, one uppercase letter, and one number."
+    )
     @NotBlank(message = "Password cannot be empty!")
     private String password;
 
@@ -44,4 +47,18 @@ public class RegisterRequest {
     @Max(value = 1, message = "Gender must be within the following values: male (1), female (0), undisclosed (-1)")
     @Min(value = -1, message = "Gender must be within the following values: male (1), female (0), undisclosed (-1)")
     private Integer gender;
+
+    public User toUserWithoutPassword()
+    {
+        return User
+            .builder()
+            .email(this.getEmail())
+            .firstName(this.getFirstName())
+            .lastName(this.getLastName())
+            .birthday(this.getBirthday())
+            .phoneNumber(this.getPhoneNumber())
+            .gender(this.getGender())
+            .status(AccountStatus.UNVERIFIED)
+            .build();
+    }
 }
