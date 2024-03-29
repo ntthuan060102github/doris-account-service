@@ -13,7 +13,7 @@ import doris.dorisaccountservice.dto.TokenPairDto;
 import doris.dorisaccountservice.dto.request.LoginRequest;
 import doris.dorisaccountservice.dto.request.RegisterRequest;
 import doris.dorisaccountservice.exception.ExistedEmailException;
-import doris.dorisaccountservice.service.AccountService;
+import doris.dorisaccountservice.service.IAccountService;
 import doris.dorisaccountservice.util.response.RestResponse;
 import jakarta.validation.Valid;
 
@@ -23,7 +23,7 @@ import jakarta.validation.Valid;
 @RestControllerAdvice
 public class AccountController {
     @Autowired
-    private AccountService userAuthenticationService;
+    private IAccountService userAuthenticationService;
 
     @PostMapping("/register")
     public RestResponse register(@Valid @RequestBody RegisterRequest registerRequest)
