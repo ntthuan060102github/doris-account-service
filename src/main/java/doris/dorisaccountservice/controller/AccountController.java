@@ -9,13 +9,15 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
-import doris.dorisaccountservice.dto.TokenPairDto;
 import doris.dorisaccountservice.dto.request.LoginRequest;
 import doris.dorisaccountservice.dto.request.RegisterRequest;
+import doris.dorisaccountservice.dto.response.LoginResponse;
 import doris.dorisaccountservice.exception.ExistedEmailException;
 import doris.dorisaccountservice.service.IAccountService;
 import doris.dorisaccountservice.util.response.RestResponse;
 import jakarta.validation.Valid;
+
+import doris.dorisaccountservice.enums.LoginResponseStatus;
 
 
 @RestController
@@ -36,30 +38,24 @@ public class AccountController {
         {
             return new RestResponse().definedError("Oops! Email này đã được sử dụng. Hãy thử sử dụng một email khác để tiếp tục cuộc hành trình của bạn!");
         }
-        catch (Exception ex)
-        {
-            return new RestResponse().internalServerError().setData(ex);
-        }
     }
 
     @PostMapping("/login")
     public RestResponse login(@Valid @RequestBody LoginRequest loginRequest)
     {
-        try {
-            TokenPairDto tokenPair = this.userAuthenticationService.login(loginRequest);
+        LoginResponse response = this.userAuthenticationService.login(loginRequest);
 
-            if (tokenPair == null)
-            {
-                return new RestResponse().definedError("Email hoặc mật khẩu không chính xác. Hãy thử lại!");
-            }
-            else 
-            {
-                return new RestResponse().setData(tokenPair);
-            }
-        }
-        catch (Exception ex)
-        {
-            return new RestResponse().internalServerError().setData(ex);
+        switch (response.getType()) {
+            case LoginResponseStatus.OK:
+                return new RestResponse().setData(response.getTokenPair());
+            case LoginResponseStatus.INVALUE_EMAIL_PASSWORD:
+                return new RestResponse().definedError().setMessage("Hmmm... có vẻ như email hoặc mật khẩu bạn nhập không đúng.");
+            case LoginResponseStatus.BLOCKED:
+                return new RestResponse().definedError().setMessage("Tài khoản này đã bị khóa. Đừng lo lắng, chúng tôi luôn ở đây để giúp đỡ. Hãy liên hệ nếu bạn cần.");
+            case LoginResponseStatus.UNVERIFIED:
+                return new RestResponse().definedError().setMessage("Opps! Tài khoản của bạn chưa được xác minh. Vui lòng kiểm tra email của bạn và hoàn tất quá trình xác minh để tiếp tục.");
+            default:
+                return new RestResponse().internalServerError();    
         }
     }
 

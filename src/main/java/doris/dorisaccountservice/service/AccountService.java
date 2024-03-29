@@ -5,6 +5,7 @@ import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.scheduling.annotation.Async;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -16,6 +17,9 @@ import doris.dorisaccountservice.dto.TokenPairDto;
 import doris.dorisaccountservice.dto.UserDetailsImp;
 import doris.dorisaccountservice.dto.request.LoginRequest;
 import doris.dorisaccountservice.dto.request.RegisterRequest;
+import doris.dorisaccountservice.dto.response.LoginResponse;
+import doris.dorisaccountservice.enums.AccountStatus;
+import doris.dorisaccountservice.enums.LoginResponseStatus;
 import doris.dorisaccountservice.exception.ExistedEmailException;
 import doris.dorisaccountservice.model.User;
 import doris.dorisaccountservice.repository.UserRepository;
@@ -65,19 +69,38 @@ public class AccountService implements IAccountService {
     }
 
     @Override
-    public TokenPairDto login(LoginRequest loginRequest)
+    public LoginResponse login(LoginRequest loginRequest)
     {
         User user = userRepository.findByEmail(loginRequest.getEmail());
+        LoginResponse response = new LoginResponse();
 
         if (user == null || !passwordEncoder.matches(loginRequest.getPassword(), user.getPassword()))
         {
-            return null;
+            response.setType(LoginResponseStatus.INVALUE_EMAIL_PASSWORD);
+            return response;
         }
         else 
         {
             UserDetailsImp userDetail = new UserDetailsImp(user);
-            TokenPairDto tokenPair = this.generateTokenPair(userDetail);
-            return tokenPair;
+
+            if(!userDetail.isEnabled())
+            {
+                response.setType(LoginResponseStatus.UNVERIFIED);
+                return response;
+            }
+            else if(!userDetail.isAccountNonLocked())
+            {
+                response.setType(LoginResponseStatus.BLOCKED);
+                return response;
+            }
+            else
+            {
+                TokenPairDto tokenPair = this.generateTokenPair(userDetail);
+                response.setType(LoginResponseStatus.OK);
+                response.setTokenPair(tokenPair);
+    
+                return response;
+            }
         }
     }
 

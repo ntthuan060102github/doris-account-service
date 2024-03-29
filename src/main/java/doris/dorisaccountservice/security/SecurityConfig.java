@@ -28,10 +28,9 @@ public class SecurityConfig {
                 requests -> {
                     requests
                         .requestMatchers(
-                            String.format("%s/authentication/login", this.apiPrefix),
-                            String.format("%s/authentication/register", this.apiPrefix)
-                        )
-                        .permitAll();
+                            String.format("%s/authentication/register", this.apiPrefix),
+                            String.format("%s/authentication/login", this.apiPrefix)
+                        ).permitAll();
                 }
             ).csrf().disable();
 
